@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>好事小票 - 善意便利店</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 引入打字机英文字体增强小票质感 -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #E2E8F0; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px 0;
+            font-family: -apple-system, "PingFang SC", sans-serif;
+        }
+
+        /* 核心：热敏纸小票样式 */
+        .receipt-wrapper {
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            margin-bottom: 30px;
+        }
+        
+        .receipt {
+            width: 320px;
+            background-color: #FDFBF7; /* 微微泛黄的纸张色 */
+            color: #333;
+            font-family: 'Courier Prime', 'Courier New', monospace; /* 模拟打印机字体 */
+            padding: 30px 20px;
+            position: relative;
+        }
+
+        /* 顶部和底部的锯齿撕纸效果 */
+        .receipt::before, .receipt::after {
+            content: ""; position: absolute; left: 0; right: 0; height: 10px;
+            background-size: 20px 20px;
+        }
+        .receipt::before {
+            top: -10px;
+            background-image: radial-gradient(circle at 10px 0, transparent 10px, #FDFBF7 11px);
+        }
+        .receipt::after {
+            bottom: -10px;
+            background-image: radial-gradient(circle at 10px 10px, transparent 10px, #FDFBF7 11px);
+        }
+
+        /* 虚线分割线 */
+        .dashed-line { border-top: 2px dashed #999; margin: 15px 0; }
+        .solid-line { border-top: 2px solid #333; margin: 15px 0; }
+
+        /* 排版细节 */
+        .text-center { text-align: center; }
+        .flex-between { display: flex; justify-content: space-between; align-items: flex-start; }
+        .item-row { margin-bottom: 15px; font-size: 13px; line-height: 1.6; }
+        
+        /* 模拟条形码 */
+        .barcode {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px; font-weight: bold; letter-spacing: -2px;
+            transform: scaleY(1.5); margin: 20px 0; color: #333;
+        }
+
+        /* 底部操作按钮 */
+        .action-bar { display: flex; gap: 15px; z-index: 10; }
+        .btn {
+            padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 15px;
+            cursor: pointer; border: none; transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-rand { background: #fff; color: #333; border: 2px solid #333; }
+        .btn-save { background: #EF4444; color: #fff; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+    </style>
+</head>
+<body>
+
+    <!-- 小票主体 -->
+    <div class="receipt-wrapper" id="receipt-capture">
+        <div class="receipt">
+            
+            <div class="text-center mb-4">
+                <div style="font-size: 24px; margin-bottom: 5px;">🌸</div>
+                <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">善意便利店</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">Tencent Charity 99</div>
+            </div>
+
+            <div class="solid-line"></div>
+
+            <div style="font-size: 12px; line-height: 1.8; color: #555;">
+                <div class="flex-between"><span>收银机:</span><span>#99-001</span></div>
+                <div class="flex-between"><span>交易时间:</span><span id="date-time">2026-09-09 14:30</span></div>
+                <div class="flex-between"><span>爱心顾客:</span><span style="font-weight: bold; color: #000;">热心市民 Emma</span></div>
+            </div>
+
+            <div class="dashed-line"></div>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">本次交易明细：</div>
+
+            <!-- 动态生成的商品列表 -->
+            <div id="items-container">
+                <!-- JS 动态注入 -->
+            </div>
+
+            <div class="dashed-line"></div>
+
+            <!-- 结算区 -->
+            <div style="font-size: 14px; line-height: 1.8;">
+                <div class="flex-between font-bold text-base">
+                    <span>总计入账:</span>
+                    <span>无价</span>
+                </div>
+                <div class="flex-between mt-2">
+                    <span>获得功德值:</span>
+                    <span style="font-weight: bold;">+99,999 点</span>
+                </div>
+                <div class="flex-between">
+                    <span>世界温暖度:</span>
+                    <span style="font-weight: bold;">上升 0.01℃</span>
+                </div>
+            </div>
+
+            <div class="solid-line"></div>
+
+            <!-- 底部致辞与条形码 -->
+            <div class="text-center" style="font-size: 12px; color: #555;">
+                <p style="margin-bottom: 5px;">请凭此小票，</p>
+                <p style="font-weight: bold; font-size: 14px; color: #000;">去兑换今天的好心情吧！</p>
+                
+                <div class="barcode">||| || | ||| || || | | ||</div>
+                
+                <p style="font-size: 10px; color: #999;">长按保存 · 善意不落空</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- 底部操作按钮 -->
+    <div class="action-bar">
+        <button class="btn btn-rand" onclick="generateRandomReceipt()">🎲 刷新小票</button>
+        <button class="btn btn-save" onclick="downloadImage()" id="download-btn">📥 打印并分享</button>
+    </div>
+
+<script>
+    // --- 极具反差萌的文案素材库 ---
+    
+    // 行为库 (做了什么)
+    const actions = [
+        { name: "微信步数 6000步", cost: "消耗了昨日一杯奶茶热量" },
+        { name: "温柔声波 15秒", cost: "耗费了打工人2%的午休时间" },
+        { name: "爱心捐款 1.00元", cost: "忍痛放弃了半根路边摊烤肠" },
+        { name: "每日益答 1次", cost: "燃烧了 0.5 兆脑细胞" },
+        { name: "早起晨跑 3公里", cost: "战胜了温暖的被窝" }
+    ];
+
+    // 结果库 (带来了什么影响)
+    const impacts = [
+        "为偏远山区学校发电 +0.5度 💡",
+        "视障儿童的睡前童话库 +1 📖",
+        "流浪小猫获得了本周的加餐罐头 🐱",
+        "地球的肺活量增加了 0.001% 🌲",
+        "化解了一只修狗的忧愁 🐕",
+        "某个远方的角落被稍微照亮了一下 ✨"
+    ];
+
+    // 初始化时间
+    function updateTime() {
+        const now = new Date();
+        const str = now.getFullYear() + '-' + 
+                   String(now.getMonth()+1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0') + ' ' + 
+                   String(now.getHours()).padStart(2, '0') + ':' + 
+                   String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('date-time').innerText = str;
+    }
+
+    // 随机抽取并生成小票内容
+    function generateRandomReceipt() {
+        const container = document.getElementById('items-container');
+        container.innerHTML = '';
+        
+        // 随机生成 1 到 2 条记录
+        const itemCount = Math.floor(Math.random() * 2) + 1;
+        
+        // 打乱数组
+        const shuffledActions = [...actions].sort(() => 0.5 - Math.random());
+        const shuffledImpacts = [...impacts].sort(() => 0.5 - Math.random());
+
+        for (let i = 0; i < itemCount; i++) {
+            let act = shuffledActions[i];
+            let imp = shuffledImpacts[i];
+            
+            let html = `
+                <div class="item-row">
+                    <div class="font-bold text-[14px]">${act.name}</div>
+                    <div style="color: #666; margin-left: 10px;">├ 成本：${act.cost}</div>
+                    <div style="color: #10B981; font-weight: bold; margin-left: 10px;">└ 产出：${imp}</div>
+                </div>
+            `;
+            container.innerHTML += html;
+        }
+        updateTime();
+    }
+
+    // 一键保存为图片
+    function downloadImage() {
+        const btn = document.getElementById('download-btn');
+        const target = document.getElementById('receipt-capture');
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '🖨️ 正在打印...';
+        btn.style.opacity = '0.7';
+
+        html2canvas(target, {
+            scale: 3, // 高清渲染
+            backgroundColor: null // 保持透明背景
+        }).then(canvas => {
+            const imageURL = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = '我的好事小票.png';
+            link.href = imageURL;
+            link.click();
+            
+            btn.innerHTML = originalText;
+            btn.style.opacity = '1';
+        });
+    }
+
+    // 页面加载时生成一次
+    window.onload = generateRandomReceipt;
+</script>
+
+</body>
+</html>

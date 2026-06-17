@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>绝世好人卡 - 社交接力</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px 0; font-family: -apple-system, "PingFang SC", sans-serif;
+            overflow: hidden;
+        }
+
+        /* 卡牌外框（带一点3D浮动感） */
+        .card-wrapper {
+            perspective: 1000px;
+            margin-top: 20px;
+        }
+
+        /* 实体卡牌样式 */
+        .good-person-card {
+            width: 320px; height: 480px;
+            background: white; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(233, 30, 99, 0.2), inset 0 0 0 8px #FFF0F5, inset 0 0 0 10px #FFB6C1;
+            padding: 30px 24px; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            transform-style: preserve-3d; transition: transform 0.5s;
+        }
+
+        /* 卡牌顶部的光效装饰 */
+        .card-glare {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 60%);
+            animation: glare 4s infinite linear; pointer-events: none;
+        }
+        @keyframes glare { 0% { transform: translateX(-50%) translateY(-50%) rotate(45deg); } 100% { transform: translateX(50%) translateY(50%) rotate(45deg); } }
+
+        /* 印章特效 (初始隐藏，核销后砰地盖上) */
+        .stamp {
+            position: absolute; top: 120px; right: 20px;
+            width: 120px; height: 120px;
+            border: 4px solid #E53935; color: #E53935; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 24px; letter-spacing: 2px;
+            transform: scale(3) rotate(-20deg); opacity: 0; pointer-events: none;
+            text-shadow: 0 0 2px rgba(229,57,53,0.3);
+        }
+        .stamp::after { content: "腾讯公益认证"; font-size: 10px; margin-top: 5px; font-weight: bold; letter-spacing: 1px; border-top: 2px solid #E53935; padding-top: 2px;}
+        
+        .stamp.stamped {
+            animation: stampIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes stampIn {
+            0% { transform: scale(3) rotate(-30deg); opacity: 0; }
+            50% { transform: scale(0.9) rotate(-15deg); opacity: 1; }
+            100% { transform: scale(1) rotate(-15deg); opacity: 0.85; }
+        }
+
+        /* 按钮区 */
+        .action-area { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; width: 320px; z-index: 10; }
+        .btn {
+            width: 100%; padding: 15px 0; border-radius: 30px; font-size: 16px; font-weight: bold;
+            border: none; cursor: pointer; transition: all 0.2s; text-align: center;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-main { background: linear-gradient(90deg, #FF758C 0%, #FF7EB3 100%); color: white; }
+        .btn-share { background: white; color: #E91E63; display: none; }
+        .btn-share.show { display: block; animation: popUp 0.5s ease-out; }
+
+        @keyframes popUp { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- 顶部小提示 -->
+    <div class="bg-white/50 px-4 py-2 rounded-full text-pink-600 text-sm font-bold mb-2 shadow-sm backdrop-blur">
+        来自微信群聊的朋友分享
+    </div>
+
+    <!-- 卡牌主体 -->
+    <div class="card-wrapper" id="capture-area">
+        <div class="good-person-card">
+            <div class="card-glare"></div>
+            
+            <div class="text-center w-full mt-4">
+                <span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-xs font-bold">限量版第 00139 号</span>
+                <h1 class="text-3xl font-extrabold text-gray-800 mt-6 mb-2 tracking-widest">绝世好人卡</h1>
+                <p class="text-xs text-gray-400">99公益日 · 社交凭证</p>
+            </div>
+
+            <div class="mt-8 text-gray-700 text-sm leading-relaxed px-4 w-full">
+                <p>致 屏幕前的朋友：</p>
+                <p class="mt-2">你的好友 <span class="font-bold text-pink-500">@Emma</span> 觉得你骨骼惊奇、心地善良，强行向你甩来了一张【好人卡】！</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mt-6 border border-gray-100 relative">
+                    <div class="absolute -top-3 left-4 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded">激活任务</div>
+                    <p class="text-gray-600 text-xs font-bold text-center mt-2">
+                        完成【每日益答 1次】<br>即可激活此卡身份
+                    </p>
+                </div>
+            </div>
+
+            <!-- 隐藏的印章 -->
+            <div class="stamp" id="stamp-mark">好人一生<br>平安</div>
+            
+            <div class="mt-auto text-[10px] text-gray-300">本卡解释权归小红花花园所有</div>
+        </div>
+    </div>
+
+    <!-- 交互按钮 -->
+    <div class="action-area">
+        <button class="btn btn-main" id="claim-btn" onclick="claimCard()">去答题，立即激活卡片</button>
+        <button class="btn btn-share" id="share-btn" onclick="shareCard()">🔥 已激活！去微信群发卡</button>
+    </div>
+
+<script>
+    function claimCard() {
+        // 模拟做完任务回来的回调
+        const btn = document.getElementById('claim-btn');
+        btn.innerHTML = '正在校验善意...';
+        btn.style.opacity = '0.8';
+
+        setTimeout(() => {
+            // 1. 盖下印章
+            document.getElementById('stamp-mark').classList.add('stamped');
+            
+            // 2. 隐藏原按钮，展示转发按钮
+            btn.style.display = 'none';
+            document.getElementById('share-btn').classList.add('show');
+            
+            // 3. 动态修改卡片文案
+            const taskBox = document.querySelector('.bg-gray-50');
+            taskBox.innerHTML = '<p class="text-pink-600 text-sm font-bold text-center py-2">恭喜！你已正式成为认证好人！<br>现在你拥有了疯狂发卡的权利！</p>';
+            taskBox.className = 'bg-pink-50 rounded-lg p-4 mt-6 border border-pink-100';
+
+        }, 800); // 模拟网络延迟
+    }
+
+    function shareCard() {
+        alert("🚀 已拉起微信分享组件！\n您可以将这张卡片发送到微信群，‘强行’发好人卡给下一个朋友啦！");
+    }
+</script>
+
+</body>
+</html>
