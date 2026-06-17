@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>善意博物馆 · 板块 Demo</title>
+<style>
+  :root{--bg:#f6f1e8;--paper:#fffdf8;--ink:#2b2620;--sub:#a89e92;--line:#ece3d6;--warm:#e8924e;--rose:#e07a6e;--green:#7da585;--flower:#df603f;--shadow:0 4px 16px rgba(150,120,80,.10)}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:#ddcfb8;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;display:flex;justify-content:center;min-height:100vh;color:var(--ink)}
+  .phone{width:390px;height:844px;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+  @media(max-width:430px){.phone{width:100vw;height:100vh}}
+  .pushscreen{position:absolute;inset:0;background:#ededed;z-index:55;display:none;flex-direction:column;padding-top:42px}
+  .pushscreen.on{display:flex;animation:fade .25s}
+  .wxhead{background:#ededed;color:var(--ink);padding:12px 18px;text-align:center;font-size:15px;font-weight:600;border-bottom:1px solid #ddd;flex:none}
+  .wxchat{flex:1;overflow-y:auto;padding:22px 16px}
+  .wxname{font-size:11px;color:#999;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .wxav{width:26px;height:26px;border-radius:5px;background:var(--warm);display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+  .wxbubble{max-width:80%;background:#fff;border-radius:4px 14px 14px 14px;padding:14px 16px;font-size:14px;line-height:1.75;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .wxbubble b{font-family:"Songti SC","STSong",serif;font-size:15px}
+  .wxsub{font-size:12px;color:#999}
+  .wxlink{margin-top:12px;background:#f7f7f7;border-radius:8px;padding:12px;border:1px solid #eee;cursor:pointer}
+  .wxlink-t{font-size:13px;font-weight:700;margin-bottom:4px}
+  .wxlink-d{font-size:11px;color:#999}
+  .scenebar{position:absolute;top:7px;left:50%;transform:translateX(-50%);z-index:200;display:flex;background:rgba(43,38,32,.82);backdrop-filter:blur(6px);border-radius:13px;padding:3px}
+  .scenebar button{border:none;background:transparent;color:rgba(246,241,232,.6);font-size:11px;font-weight:600;padding:5px 11px;border-radius:10px;cursor:pointer}
+  .scenebar button.on{background:#f6f1e8;color:var(--ink)}
+  .status{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;font-weight:600;flex:none}
+  .ctx{display:flex;align-items:center;gap:6px;padding:2px 18px 6px;font-size:12px;color:var(--sub);flex:none}
+  .ctx b{color:var(--ink)}
+  .head{padding:2px 18px 6px;flex:none}
+  .hrow{display:flex;align-items:center;justify-content:space-between}
+  .head h1{font-size:20px;letter-spacing:1px;display:flex;align-items:center;gap:7px}
+  .head .sub{font-size:12px;color:var(--sub);margin-top:4px;font-style:italic}
+  .fpill{font-size:12px;background:#fbe1d8;color:var(--flower);padding:5px 11px;border-radius:13px;font-weight:700;white-space:nowrap}
+  .scroll{flex:1;overflow-y:auto;padding:2px 12px 92px;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+  .curate{margin:6px 6px 4px}
+  .ctitle{font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;margin:4px 2px 9px}
+  .ctitle span{font-size:10px;color:var(--sub);font-weight:500}
+  .crow{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .crow::-webkit-scrollbar{display:none}
+  .ccard{flex:none;width:152px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:13px 12px 11px;cursor:pointer;text-align:center;position:relative}
+  .ccard .badge{position:absolute;top:8px;left:8px;font-size:9px;background:var(--flower);color:#fff;padding:2px 6px;border-radius:6px;font-weight:700}
+  .ccard .t{font-size:13px;line-height:1.5;font-weight:600;font-family:"Songti SC","STSong",serif;margin-top:8px;min-height:44px}
+  .ccard svg{width:74px;height:70px;margin:8px 0 2px}
+  .ccard .f{font-size:11px;opacity:.85}
+  .galbtn{width:100%;margin:8px 2px 2px;padding:11px;border-radius:12px;background:#efe6d6;border:1px dashed #d8c9b0;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer}
+  .sech{font-size:13px;font-weight:800;margin:14px 8px 8px;display:flex;align-items:center;gap:6px}
+  .sech span{font-size:10px;color:var(--sub);font-weight:500}
+  .wall{column-count:2;column-gap:10px;padding:0 4px}
+  .poster{break-inside:avoid;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:13px 12px 9px;margin-bottom:10px;box-shadow:var(--shadow);text-align:center;position:relative}
+  .poster .pk{position:absolute;top:9px;right:9px;font-size:9px;background:#fbe7d9;color:var(--flower);padding:2px 6px;border-radius:6px;font-weight:700}
+  .poster.reply{border:none;padding:22px 15px 13px;min-height:168px;display:flex;flex-direction:column;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .poster.reply .rq{position:absolute;top:0;left:12px;font-size:52px;line-height:1;color:rgba(120,90,50,.13);font-family:Georgia,"Songti SC",serif;font-weight:700}
+  .poster.reply .replytext{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15.5px;line-height:1.85;color:#3a322a;font-weight:500;font-family:"Songti SC","STSong",serif;position:relative;z-index:1;padding:6px 2px}
+  .poster.reply .replysig{text-align:center;font-size:11px;color:#9a8a72;margin-top:8px}
+  .poster.reply .replyref{margin-top:13px;background:rgba(255,255,255,.5);border-radius:10px;padding:7px 11px;font-size:10.5px;color:#8a7350;text-align:center;line-height:1.4}
+  .poster.reply .replyref b{color:#5c4a30;font-weight:600}
+  .poster.reply .rphotosm{width:100%;border-radius:9px;margin-bottom:10px;display:block}
+  .replybig{border-radius:14px;padding:26px 18px 16px;text-align:center;position:relative;box-shadow:var(--shadow);margin-bottom:14px}
+  .replybig .rq{position:absolute;top:4px;left:16px;font-size:54px;color:rgba(120,90,50,.13);font-family:Georgia,serif;font-weight:700;line-height:1}
+  .replybig .rphoto{width:100%;border-radius:12px;margin-bottom:14px;display:block}
+  .replytextbig{font-size:18px;line-height:1.85;color:#3a322a;font-weight:500;font-family:"Songti SC","STSong",serif;position:relative;z-index:1}
+  .replybig .replysig{font-size:12px;color:#9a8a72;margin-top:12px}
+  .refcard{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;margin-bottom:16px}
+  .refcard .refthumb{width:40px;height:40px;border-radius:8px;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:16px}
+  .refcard .refthumb img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+  .refcard .reftxt{flex:1;min-width:0}
+  .refcard .refk{font-size:10px;color:var(--sub)}
+  .refcard .reftt{font-size:12.5px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .refcard .refgo{color:var(--sub);font-size:16px}
+  .dmphoto{padding:0 12px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:16px;cursor:pointer}
+  .dmphoto.on{background:#fbe7d9;border-color:#f1c3a3}
+  .ctools{display:flex;gap:8px;margin-top:10px}
+  .ctool{flex:1;padding:10px;border-radius:11px;border:1px solid var(--line);background:var(--paper);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer}
+  .ctool.on{background:#e6efe6;border-color:var(--green);color:var(--green)}
+  .ecard{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px 16px 14px;text-align:center;margin-top:6px}
+  .ectitle{font-size:17px;font-weight:600;line-height:1.6;font-family:"Songti SC","STSong",serif;outline:none;border:1.5px dashed transparent;border-radius:8px;padding:4px 6px;min-height:30px;color:var(--ink)}
+  .ectitle:focus{border-color:var(--warm);background:#fffaf3}
+  .ecillu{margin:10px 0 2px}
+  .ecillu img.illu{max-width:200px;margin:6px auto}
+  .ecillu svg{width:120px;height:112px}
+  img.illu.rawphoto{mix-blend-mode:normal;filter:none;border-radius:10px}
+  .ec-toggle{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;margin-top:10px}
+  .ec-toggle button{flex:1;padding:8px 0;border:none;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--sub);cursor:pointer}
+  .ec-toggle button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .ginvite{text-align:center}
+  .ginvite .gie{font-size:42px;margin-bottom:12px}
+  .ginvite .git{font-size:21px;font-weight:800;line-height:1.6;font-family:"Songti SC","STSong",serif;margin-bottom:8px;color:var(--ink)}
+  .ginvite .gis{font-size:13px;color:var(--sub);margin-bottom:22px}
+  .ginvite .btnp{margin-bottom:10px}
+  .ginvite .giall{width:100%;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer}
+  .bcast{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);margin:0 2px 8px;cursor:pointer}
+  .bcast input{width:15px;height:15px;accent-color:var(--green)}
+  .poster .title{font-size:14px;line-height:1.55;font-weight:600;letter-spacing:.3px;font-family:"Songti SC","STSong",serif;cursor:pointer}
+  .poster .art{padding:6px 0 2px;cursor:pointer}
+  .poster .art svg{width:92px;height:88px}
+  .poster .wm{font-size:9px;color:#cabfae;letter-spacing:1px;margin-top:2px}
+  .poster .bar{display:flex;gap:8px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+  .poster .act{flex:1;font-size:11px;color:var(--sub);background:var(--bg);border-radius:9px;padding:6px 0;cursor:pointer;transition:.15s;font-weight:600}
+  .poster .act.on{background:#fbe7d9;color:var(--flower)}
+  .poster .act.on2{background:#e6efe6;color:var(--green)}
+  .fab{position:absolute;bottom:24px;right:18px;height:48px;padding:0 18px;border-radius:24px;background:var(--ink);color:#f6f1e8;border:none;font-size:14px;font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,.25);cursor:pointer;z-index:20;display:flex;align-items:center;gap:6px}
+  .mask{position:absolute;inset:0;background:rgba(30,24,16,.5);z-index:30;display:none;align-items:flex-end}
+  .mask.on{display:flex;animation:fade .25s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{background:var(--bg);width:100%;border-radius:22px 22px 0 0;padding:8px 18px 24px;max-height:92%;overflow-y:auto;animation:up .3s ease;scrollbar-width:none}
+  .sheet::-webkit-scrollbar{display:none}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .grab{width:38px;height:4px;background:#d8cdba;border-radius:2px;margin:8px auto 14px}
+  #amask .sheet,#pmask .sheet{height:100%;max-height:100%;border-radius:0;padding-top:14px}
+  .backrow{font-size:14px;color:var(--sub);cursor:pointer;padding:2px 0 14px;font-weight:600}
+  .dbar{display:flex;justify-content:flex-end;position:relative;height:22px;margin-bottom:2px}
+  .dmore{font-size:20px;color:var(--sub);cursor:pointer;padding:0 6px;letter-spacing:1px;line-height:1}
+  .moremenu{position:absolute;top:26px;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:none;z-index:6;min-width:168px}
+  .moremenu.on{display:block}
+  .mi{padding:12px 16px;font-size:13.5px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .mi:last-child{border-bottom:none}
+  .poster2{text-align:center;padding:4px 8px 0}
+  .poster2 .ptitle{font-size:19px;font-weight:600;font-family:"Songti SC","STSong",serif;line-height:1.65;margin-bottom:8px}
+  .poster2 img.illu{max-width:270px;margin:6px auto 2px}
+  .poster2 .pwm{font-size:10px;color:#cabfae;letter-spacing:1px;margin-top:6px}
+  .poster2 .pmeta{font-size:11px;color:var(--sub);margin-top:10px}
+  .actzone{text-align:center;margin-top:20px}
+  .actzone .actcount{font-size:13px;color:var(--sub);margin-bottom:12px}
+  .actzone .actcount b{color:var(--ink);font-size:15px}
+  .react2{display:flex;gap:10px;justify-content:center;margin:18px 0 20px}
+  .btnp{width:100%;padding:15px;border-radius:14px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+  .btnp.done{background:#e6efe6;color:var(--green)}
+  .invite .proof{font-size:12px;color:var(--sub);text-align:center;margin-top:12px}
+  .invite .proof b{color:var(--ink)}
+  .ilink{color:var(--warm);font-weight:600;cursor:pointer;white-space:nowrap}
+  .pledgecollapse{display:none;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:12px}
+  .pledgecollapse.on{display:block}
+  .pcaption{font-size:11.5px;color:#8a7f72;line-height:1.6;margin-bottom:10px}
+  .pledgecollapse .ilink{display:inline-block;margin-top:8px;font-size:12px}
+  .dposter{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px 16px 14px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+  .danmu-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .danmu{position:absolute;left:100%;white-space:nowrap;background:rgba(255,253,248,.86);border:1px solid var(--line);border-radius:12px;padding:3px 10px;font-size:11px;color:var(--ink);animation:dm linear infinite}
+  @keyframes dm{from{transform:translateX(0)}to{transform:translateX(calc(-100vw - 100%))}}
+  .footlinks{text-align:center;margin:12px 0 14px;font-size:12px}
+  .dmbar{display:flex;gap:8px;margin-bottom:12px}
+  .dmbar input{flex:1;border:1px solid var(--line);border-radius:20px;padding:9px 14px;font-size:13px;background:var(--paper);font-family:inherit;color:var(--ink)}
+  .dmbar input:focus{outline:none;border-color:var(--warm)}
+  .dmbar button{padding:9px 16px;border-radius:20px;border:none;background:var(--ink);color:#f6f1e8;font-size:13px;font-weight:600;cursor:pointer}
+  .dposter .title{font-size:18px;line-height:1.6;font-weight:600;font-family:"Songti SC","STSong",serif}
+  .dposter svg{width:150px;height:140px;margin:8px 0 2px}
+  .dposter .wm{font-size:10px;color:#cabfae;letter-spacing:1px;margin-top:4px}
+  .dtag{font-size:11px;color:var(--sub);text-align:center;margin-bottom:14px}
+  .follow{font-size:11px;color:var(--warm);font-weight:700;float:right}
+  .react{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .dreact{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);position:relative;z-index:2}
+  .dreact .rc{font-size:12px;padding:6px 11px}
+  .rc{padding:7px 13px;border-radius:16px;background:var(--paper);border:1px solid var(--line);font-size:13px;cursor:pointer;transition:.15s;color:var(--ink)}
+  .rc.on{background:#fbe7d9;border-color:#f1c3a3}
+  .rc .n{color:var(--sub);font-size:12px;margin-left:3px}
+  .flowerbox{background:linear-gradient(135deg,#fdeee4,#f7efe0);border-radius:14px;padding:15px;margin-bottom:16px}
+  .flowerbox .h{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .flowerbox .desc{font-size:11px;color:#8a7f72;line-height:1.5;margin:8px 0 12px}
+  .flowerbox .give{width:100%;padding:12px;border-radius:11px;border:none;background:var(--flower);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+  .flowerbox .give.done{background:#f7ddd2;color:var(--flower)}
+  .flowerbox .didit{width:100%;padding:11px;border-radius:11px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:13.5px;font-weight:700;cursor:pointer;margin-top:9px}
+  .flowerbox .didit.done{background:#e6efe6;border-color:#e6efe6}
+  .cmts .ct{font-size:13px;font-weight:700;margin-bottom:10px}
+  .cmt{display:flex;gap:9px;margin-bottom:12px}
+  .cmt .a{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+  .cmt .b{flex:1}.cmt .b .nm{font-size:12px;color:var(--sub)}.cmt .b .tx{font-size:13.5px;line-height:1.5;margin-top:2px}
+  .cmt .own{font-size:9px;background:var(--ink);color:#fff;padding:1px 5px;border-radius:5px;margin-left:5px}
+  .sheet h3{font-size:17px;margin-bottom:3px}
+  .sheet .hint{font-size:12px;color:var(--sub);margin-bottom:12px}
+  .lane{display:flex;gap:8px;margin-bottom:6px}
+  .laneb{flex:1;padding:10px;border-radius:11px;border:1px solid var(--line);background:var(--paper);font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
+  .laneb.on{background:var(--ink);color:#f6f1e8;border-color:var(--ink)}
+  .step{font-size:12px;font-weight:700;color:var(--ink);margin:14px 2px 8px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{padding:7px 12px;border-radius:14px;background:var(--paper);border:1px solid var(--line);font-size:13px;cursor:pointer;color:var(--ink)}
+  .chip.on{background:var(--ink);color:#f6f1e8;border-color:var(--ink)}
+  .chip.ex.on{background:#fbe7d9;color:var(--flower);border-color:#f1c3a3}
+  .scaffold{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;margin-top:10px;font-family:"Songti SC","STSong",serif;font-size:16px;font-weight:600;line-height:1.6}
+  .scaffold .blank{color:var(--flower);border-bottom:1.5px dashed var(--flower);padding:0 4px}
+  .miniin,.ta{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;font-family:inherit;background:var(--paper)}
+  .ta{min-height:84px;resize:none;line-height:1.5;font-size:15px}
+  .miniin{margin-top:8px}
+  .miniin:focus,.ta:focus{outline:none;border-color:var(--warm)}
+  .pcard{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:16px;text-align:center;margin-top:14px}
+  .pcard .lbl{font-size:10px;color:var(--sub);margin-bottom:6px}
+  .pcard .big{font-size:17px;font-weight:600;line-height:1.55;font-family:"Songti SC","STSong",serif}
+  .pcard svg{width:120px;height:112px;margin:6px 0 2px}
+  .pcard .wm{font-size:9px;color:#cabfae;letter-spacing:1px}
+  .pcard .tog{font-size:11px;color:var(--warm);cursor:pointer;font-weight:600;margin-top:8px;display:inline-block}
+  .pcard .og{font-size:12px;color:var(--sub);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);display:none}
+  .pcard .og.on{display:block}
+  .pubrow{font-size:11px;color:var(--flower);text-align:center;margin-top:12px;font-weight:600}
+  .pub{width:100%;padding:13px;border-radius:12px;border:none;background:var(--ink);color:#f6f1e8;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+  .loading{display:flex;flex-direction:column;align-items:center;gap:9px;padding:18px;color:var(--sub);font-size:13px}
+  .spin{width:24px;height:24px;border:3px solid #eadfce;border-top-color:var(--warm);border-radius:50%;animation:rot .8s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .gallery{position:absolute;inset:0;background:#5c4a3a;z-index:45;display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px}
+  .gallery.on{display:flex;animation:fade .3s}
+  .gclose{position:absolute;top:16px;right:20px;color:#f6f1e8;font-size:22px;cursor:pointer;opacity:.8}
+  .gcard{background:#fffdf8;border-radius:16px;padding:34px 24px 24px;width:100%;text-align:center;cursor:pointer;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+  .gcard .title{font-size:21px;line-height:1.7;font-weight:600;font-family:"Songti SC","STSong",serif}
+  .gcard svg{width:175px;height:165px;margin:14px 0 6px}
+  .gcard .wm{font-size:10px;color:#cabfae;letter-spacing:1px}
+  .gactions{display:flex;gap:12px;margin-top:18px;justify-content:center}
+  .gbtn{padding:9px 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
+  .gnav{color:#9a8f7e;font-size:12px;margin-top:24px}
+  .relaybar{margin:4px 6px 2px;background:linear-gradient(135deg,#fdeee4,#f7efe0);border:1px solid #f1d9c4;border-radius:12px;padding:11px 14px;font-size:12.5px;color:#9a5a3a;font-weight:600;cursor:pointer;text-align:center}
+  .relaybar b{color:var(--flower);font-size:14px}
+  .seeproj{color:var(--flower);font-weight:700;cursor:pointer;white-space:nowrap}
+  .proj{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:11px}
+  .proj .pn{font-size:14px;font-weight:700}
+  .proj .po{font-size:11px;color:var(--sub);margin:2px 0 9px}
+  .bar2{height:8px;background:#efe6d6;border-radius:5px;overflow:hidden}
+  .bar2 i{display:block;height:100%;background:var(--flower);border-radius:5px}
+  .proj .amt{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-top:6px}
+  .proj .mine{font-size:11px;color:var(--green);margin-top:6px;font-weight:600}
+  .trace{font-size:11px;color:var(--sub);text-align:center;margin-top:8px;line-height:1.6}
+  .chip.spark{font-size:12px;color:var(--sub)}
+  .uploadbox{border:1.5px dashed #d8c9b0;border-radius:13px;padding:34px 16px;text-align:center;font-size:14px;color:var(--sub);cursor:pointer;background:var(--paper);font-weight:600}
+  .uploadbox.done{border-style:solid;border-color:var(--green);color:var(--ink)}
+  .uploadbox .sub2{font-size:11px;color:var(--sub);margin-top:7px;font-weight:400}
+  .addphoto{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;border-radius:20px;border:1px dashed #d8c9b0;background:var(--paper);font-size:13px;color:var(--sub);cursor:pointer;font-weight:600}
+  .addphoto.done{border-style:solid;border-color:var(--green);color:var(--green)}
+  img.illu{width:100%;display:block;mix-blend-mode:multiply;filter:brightness(1.08) contrast(1.04)}
+  .ccard img.illu{margin:2px 0 4px}
+  .dposter img.illu{max-width:300px;margin:8px auto 2px}
+  .gcard img.illu{max-width:100%;margin:10px auto 4px}
+  .pcard img.illu{max-width:240px;margin:6px auto 2px}
+  .cintro{font-size:12px;color:var(--sub);line-height:1.5;margin:0 2px 14px}
+  .cstepbar{font-size:11px;color:var(--sub);text-align:center;margin:2px 0 10px;letter-spacing:1px}
+  .cstepbar b{color:var(--flower)}
+  .cstep{font-size:13px;font-weight:700;text-align:center;margin:6px 0 12px;color:var(--ink)}
+  .ghostbtn{width:100%;padding:11px;border-radius:12px;border:none;background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+  .deedbanner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#e6efe6,#f2efe2);border:1px solid #d6e3d6;border-radius:13px;padding:13px 15px;margin-bottom:14px;cursor:pointer}
+  .deedbanner span{font-size:12px;color:#5c7a60;white-space:nowrap}
+  .deedbanner b{font-size:13px;color:var(--ink);text-align:right}
+  .inlinedeed{background:#f3f5ef;border:1px solid #e2e9dd;border-radius:14px;padding:14px;margin-bottom:14px}
+  .deedtitle{font-size:16px;font-weight:700;text-align:center;margin:2px 0 4px}
+  .deedkicker{font-size:11px;color:var(--green);font-weight:700;text-align:center;margin-bottom:4px}
+  .deedstat{font-size:13px;color:var(--ink);text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px;margin:12px 0 10px;line-height:1.6}
+  .deedstat b{color:var(--green);font-size:17px}
+  .deedproj{font-size:12px;color:#8a7f72;text-align:center;margin-bottom:8px;cursor:pointer}
+  .deedproj b{color:var(--ink)}
+  .pledgebox{background:linear-gradient(135deg,#fdeee4,#f7efe0);border-radius:14px;padding:14px;margin-bottom:12px}
+  .pledgeh{font-size:13px;font-weight:700;margin-bottom:6px}
+  .pledgetxt{font-size:12px;color:#8a7f72;line-height:1.55;margin-bottom:10px}
+  .pledgenote{font-size:10px;color:var(--sub);margin-top:7px}
+  .pledgebox .seeproj{display:inline-block;margin-top:8px}
+  .pubok{font-size:21px;font-weight:800;text-align:center;margin:4px 0 3px}
+  .pubsub{font-size:12px;color:var(--sub);text-align:center;margin-bottom:10px}
+  .rewardchip{display:block;width:fit-content;margin:0 auto 16px;background:#fbe1d8;color:var(--flower);font-size:12px;font-weight:700;padding:6px 14px;border-radius:14px}
+  .sharecard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 16px 14px;text-align:center;box-shadow:var(--shadow)}
+  .sharecard .sctitle{font-size:17px;font-weight:600;font-family:"Songti SC","STSong",serif;line-height:1.6;margin-bottom:6px}
+  .sharecard img.illu{max-width:230px;margin:6px auto}
+  .scfoot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .scbrand{text-align:left;font-size:12px;font-weight:700}
+  .scbrand span{display:block;font-size:9px;color:var(--sub);font-weight:400;margin-top:2px}
+  .scqr{width:52px;height:52px;flex:none}
+  .scqr svg{width:100%;height:100%;display:block}
+  .sharegrid{display:flex;gap:8px;margin:16px 0 10px}
+  .sgbtn{flex:1;padding:12px 2px;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+  .toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(30,24,16,.93);color:#fff;padding:11px 18px;border-radius:13px;font-size:13px;z-index:60;opacity:0;transition:.3s;pointer-events:none;max-width:310px;text-align:center;line-height:1.5}
+  .toast.on{opacity:1}
+  .fly{position:absolute;font-size:26px;z-index:70;pointer-events:none;opacity:0}
+  .fly.go{animation:fly 1s ease forwards}
+  @keyframes fly{0%{opacity:1;transform:translateY(0) scale(.6)}30%{opacity:1;transform:translateY(-30px) scale(1.2)}100%{opacity:0;transform:translateY(-120px) scale(.8)}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scenebar" id="scenebar"><button data-s="home" class="on">首页</button><button data-s="share">分享进入</button><button data-s="push">Push进入</button></div>
+  <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="ctx"><span>‹</span><span>公益 · 暖心社区 / <b>人类善意观察计划</b></span></div>
+  <div class="head">
+    <h1>🤍 人类善意观察计划</h1>
+    <div class="sub">观察身边那些让你心头一暖、人也太可爱了的善意</div>
+  </div>
+  <div class="scroll">
+    <div class="curate">
+      <div class="ctitle">💗 本月最暖 · 编辑精选</div>
+      <div class="crow" id="crow"></div>
+      <button class="galbtn" id="galbtn">☁️ 一个一个，慢慢看</button>
+    </div>
+    <div class="sech">🤍 大家观察到的善意</div>
+    <div class="wall" id="wall"></div>
+  </div>
+  <button class="fab" id="fab">✍️ 发一条</button>
+  <div class="mask" id="dmask"><div class="sheet" id="dsheet"></div></div>
+  <div class="mask" id="cmask"><div class="sheet" id="csheet"></div></div>
+  <div class="mask" id="pmask"><div class="sheet" id="psheet"></div></div>
+  <div class="mask" id="smask"><div class="sheet" id="ssheet"></div></div>
+  <div class="mask" id="amask"><div class="sheet" id="asheet"></div></div>
+  <div class="gallery" id="gallery"><div class="gclose" id="gclose">✕</div><div class="gcard" id="gcard"></div><div class="gnav">点卡片 / 上滑 · 看下一件</div></div>
+  <div class="pushscreen" id="pushscreen">
+    <div class="wxhead">人类善意观察计划</div>
+    <div class="wxchat">
+      <div class="wxname"><span class="wxav">🤍</span> 人类善意观察计划 · 服务号</div>
+      <div class="wxbubble">🌙 晚安，今天辛苦了。<br><br>在忙碌的一天结束前——<br><br><b>今天有没有一个瞬间，<br>让你觉得人还不错？</b><br><br><span class="wxsub">可能是陌生人的一个笑、同事帮你接了杯水、或者外卖备注里的一句"辛苦了"。</span>
+        <div class="wxlink" id="wxlink"><div class="wxlink-t">✍️ 记录今天的善意瞬间</div><div class="wxlink-d">一句话就够，小暖帮你变成一张温暖的卡片 ›</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="fly" id="fly">🌸</div>
+</div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+let myFlowers=12;
+function setFlower(){const e=$('#fpill');if(e)e.textContent='🌸 我的 '+myFlowers;}
+function flyFlower(){const f=$('#fly');f.style.left='50%';f.style.bottom='320px';f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+
+const S='stroke="#2b2620" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const TX='font-size="7" fill="#2b2620" stroke="none" text-anchor="middle"';
+const svg={
+ umbrella:`<svg viewBox="0 0 100 100" ${S}><circle cx="32" cy="32" r="7"/><path d="M32 39v22"/><path d="M32 61l-7 19M32 61l7 19"/><path d="M32 46l24 4"/><path d="M68 50V26"/><path d="M52 30q16-11 32 0"/><path d="M52 30q4 5 8 0 4 5 8 0 4 5 8 0 4 5 8 0"/></svg>`,
+ interview:`<svg viewBox="0 0 100 100" ${S}><circle cx="24" cy="40" r="6"/><path d="M24 46v15"/><path d="M18 74c0-9 3-13 6-13s6 4 6 13"/><circle cx="74" cy="40" r="6"/><path d="M74 46v15"/><path d="M68 74c0-9 3-13 6-13s6 4 6 13"/><path d="M16 78h68"/><path d="M40 14h30v13H54l-4 5-1-5h-9z"/><text x="55" y="23" ${TX}>没事的~</text></svg>`,
+ plant:`<svg viewBox="0 0 100 100" ${S}><circle cx="30" cy="44" r="7"/><path d="M30 51v12"/><path d="M30 63l-5 16M30 63l8 11"/><path d="M30 56l13 5"/><path d="M43 58l11-3 3 7-11 3z"/><path d="M57 56l7 3"/><path d="M64 60q2 4 4 7"/><path d="M68 72h14l-2 16H70z"/><path d="M75 72c0-9-6-13-11-13 0 8 5 13 11 13z"/><path d="M75 72c0-10 6-15 12-15 0 9-6 15-12 15z"/><path d="M75 72V60"/><path d="M34 16h28v13H48l-4 5-1-5h-9z"/><text x="48" y="25" ${TX}>快快长大吧</text></svg>`,
+ cable:`<svg viewBox="0 0 100 100" ${S}><circle cx="34" cy="30" r="7"/><path d="M34 37v20"/><path d="M34 57l-6 20M34 57l6 20"/><path d="M34 44l16 6"/><ellipse cx="62" cy="58" rx="14" ry="9"/><ellipse cx="62" cy="58" rx="7" ry="4.5"/><path d="M62 49V38"/><rect x="58" y="31" width="8" height="7" rx="2"/></svg>`,
+ cup:`<svg viewBox="0 0 100 100" ${S}><circle cx="30" cy="32" r="7"/><path d="M30 39v18"/><path d="M30 57l-6 20M30 57l6 20"/><path d="M30 46l14 6"/><path d="M50 50h26l-3 36H53z"/><path d="M53 50l3-6h14l3 6"/><path d="M63 44V30l8-5"/><circle cx="58" cy="74" r="2.2"/><circle cx="68" cy="68" r="2.2"/></svg>`,
+ fish:`<svg viewBox="0 0 100 100" ${S}><circle cx="28" cy="32" r="7"/><path d="M28 39v18"/><path d="M28 57l-6 20M28 57l6 20"/><path d="M28 46l16 8"/><ellipse cx="64" cy="66" rx="28" ry="6"/><path d="M44 60c11-12 30-12 38 0-8 8-27 8-38 0z"/><path d="M82 60l8-6v12z"/><circle cx="52" cy="58" r="1.6"/></svg>`,
+ chair:`<svg viewBox="0 0 100 100" ${S}><circle cx="28" cy="28" r="7"/><path d="M28 35v22"/><path d="M28 57l-6 20M28 57l6 20"/><path d="M28 42l16 7"/><path d="M22 40l-8 4 2 13h8z"/><path d="M52 48v30M72 48v30"/><path d="M52 48c8-5 12-5 20 0"/><path d="M52 62h20"/><path d="M46 80h44"/></svg>`,
+ grill:`<svg viewBox="0 0 100 100" ${S}><circle cx="28" cy="30" r="7"/><path d="M28 37v20"/><path d="M28 57l-6 20M28 57l6 20"/><path d="M28 44l20 8"/><rect x="48" y="56" width="34" height="11" rx="3"/><path d="M54 67v11M76 67v11"/><path d="M50 61h30"/><path d="M58 42c-3 4 3 6 0 10M68 40c-3 4 3 6 0 10M78 42c-3 4 3 6 0 10"/></svg>`,
+ tooth:`<svg viewBox="0 0 100 100" ${S}><circle cx="64" cy="62" r="9"/><path d="M40 72h46"/><path d="M58 71h28"/><circle cx="32" cy="30" r="7"/><path d="M32 37v15"/><path d="M32 52l-4 17M32 52l6 15"/><path d="M32 44l22 13"/><path d="M40 12h28v13H52l-4 5-1-5h-7z"/><text x="54" y="21" ${TX}>下一步会有点酸</text></svg>`,
+ person:`<svg viewBox="0 0 100 100" ${S}><circle cx="50" cy="32" r="10"/><path d="M30 80c0-14 9-26 20-26s20 12 20 26"/><path d="M50 54v14"/></svg>`,
+};
+
+const moments=[
+ {id:1,s:'陌生人',img:'seat.png',k:'person',deed:'help',t:'东西掉到座位下时，会开手电筒帮你一起找的人',f:1842,pick:true,rc:{太好了:980,是真的:412,我也遇到过:331,本人:6},cm:[['#e07a6e','棉花糖','太好了！世界还是有这种人的😭'],['#7da585','本人路过','顺手的事啦哈哈','own']]},
+ {id:2,s:'职场',img:'interview.png',k:'interview',t:'会说"没关系，我们也很紧张的"的面试官',f:2103,pick:true,rc:{太好了:1320,是真的:560,我也遇到过:201,本人:22},cm:[['#e8924e','刚毕业的鱼','这句话当场把我说哭了'],['#7da585','HR小张','我们是真的也紧张啊','own']]},
+ {id:3,s:'生活',img:'plant.png',k:'plant',t:'给植物浇水时，会和它说话的人',f:991,rc:{太好了:610,是真的:288,我也遇到过:402,本人:55},cm:[['#e07a6e','绿手指','我家那盆被我夸到爆盆🌱'],['#7da585','本人','它真的会回应你的','own']]},
+ {id:4,s:'服务业',img:'dentist.png',k:'tooth',t:'提前说明下一步、给你心理准备的牙医',f:889,pick:true,rc:{太好了:520,是真的:330,我也遇到过:210,本人:5},cm:[['#7da585','怕看牙','这种牙医能减轻一半恐惧']]},
+ {id:5,s:'职场',img:'cable.png',k:'cable',t:'还你充电线时，悄悄帮你缠好的同事',f:758,rc:{太好了:430,是真的:312,我也遇到过:188,本人:3},cm:[['#e8924e','工位邻居','这种同事请给我来一打']]},
+ {id:6,s:'生活',img:'bike.png',k:'person',deed:'bike',t:'在路边看到被风吹倒的共享单车，会顺手把它扶起来的人',f:1126,pick:true,rc:{太好了:702,是真的:401,我也遇到过:455,本人:9},cm:[['#7da585','路过的风','小事但每次看到都想做'],['#e07a6e','骑行族','谢谢你们这样的人🥹']]},
+ {id:7,reply:true,author:'修车阿姨家的猫',t:'我家楼下那个修车师傅也是，看到倒了的车顺手就扶，十年了。',replyTo:'扶起倒下的共享单车',replyToId:6,rc:{太好了:46,我也遇到过:18},cm:[['#7da585','路过的风','这种人值得被看见']]},
+ {id:8,reply:true,author:'momo',t:'我也会，每次浇水都跟它念叨两句，好像它真能听懂🪴',replyTo:'给植物浇水时，会和它说话的人',replyToId:3,rc:{太好了:88,我也遇到过:12},cm:[]},
+];
+const no=m=>'第 '+(1000+m.id)+' 次心头一暖';
+const imgTag=f=>`<img class="illu" src="img/${f}" alt="">`;
+const ART=m=>m.img?imgTag(m.img):svg[m.k];
+const kImg={interview:'interview.png',plant:'plant.png',tooth:'dentist.png',cable:'cable.png',person:'seat.png'};
+
+const roles=[{who:'便利店阿姨',scene:'服务业',k:'cup'},{who:'店员',scene:'服务业',k:'umbrella'},{who:'同事',scene:'职场',k:'cable'},{who:'面试官',scene:'职场',k:'interview'},{who:'妈妈',scene:'家人',k:'fish'},{who:'陌生人',scene:'陌生人',k:'person'},{who:'牙医',scene:'服务业',k:'tooth'},{who:'朋友',scene:'生活',k:'plant'}];
+const examples={服务业:['多给你一根吸管','下雨把伞塞给你','多塞一个袋子','悄悄说你先用'],职场:['帮你把椅子推回去','还线时帮你缠好','说我们当年也紧张','停下来认真听你说完'],家人:['把鱼刺都挑干净','留一盏灯等你回家','把热乎的让给你'],陌生人:['提醒你鞋带散了','帮你按住电梯','分你半把伞'],生活:['浇花时跟它说话','把共享单车扶正','帮邻居取了快递'],小动物:['蹭了蹭递水的人','被偷偷喂胖了']};
+
+const projects={
+  服务业:{name:'户外劳动者歇脚点',org:'XX 公益基金会 · 企业配捐'},
+  陌生人:{name:'城市应急互助网络',org:'XX 基金会 · 企业配捐'},
+  职场:{name:'年轻人心理支持热线',org:'XX 心理公益 · 企业配捐'},
+  家人:{name:'独居老人关怀计划',org:'XX 为老服务 · 企业配捐'},
+  生活:{name:'社区绿植共建',org:'XX 社区基金 · 企业配捐'},
+  小动物:{name:'流浪动物救助站',org:'XX 动物保护 · 企业配捐'},
+};
+const projData={服务业:[128640,200000],陌生人:[86200,150000],职场:[64300,120000],家人:[153900,200000],生活:[42100,80000],小动物:[97800,160000]};
+const PJ=s=>projects[s]||projects['陌生人'];
+function setRelay(){const total=Object.values(projData).reduce((a,p)=>a+p[0],0);$('#relaybar').innerHTML=`🌸 大家的善意已接力成 <b>¥${total.toLocaleString()}</b> · 点亮 ${Object.keys(projects).length} 个真实项目 · 看去向 ›`;}
+function openProjects(){
+  const items=Object.keys(projects).map((s,i)=>{const p=projects[s],[r,g]=projData[s],pct=Math.min(100,Math.round(r/g*100));
+    return `<div class="proj"><div class="pn">${p.name}</div><div class="po">${p.org} · 对应「${s}」的善意</div><div class="bar2"><i style="width:${pct}%"></i></div><div class="amt"><span>已筹 ¥${r.toLocaleString()}</span><span>${pct}% · 目标 ¥${g.toLocaleString()}</span></div><div class="mine">👏 由大家的赞 + 企业配捐点亮</div></div>`;}).join('');
+  $('#psheet').innerHTML=`<div class="grab"></div><h3>👏 大家的赞，正在变成真实公益</h3><div class="hint">这些善款来自两处：① 大家给善意点的赞——每个赞由企业配捐成真钱（你不花钱）；② 想多出力的人直接捐赠。资金方公开、全程可追溯。</div>${items}<div class="trace">你点的每个赞都解锁了企业配捐<br>全程可追溯，你未花一分钱</div>`;
+  $('#pmask').classList.add('on');
+}
+function openProject(s){const p=projects[s],d=projData[s],r=d[0],g=d[1],pct=Math.min(100,Math.round(r/g*100));
+  $('#psheet').innerHTML=`<div class="backrow" id="projback">‹ 返回</div><h3>${p.name}</h3><div class="hint">${p.org} · 对应「${s}」的善意</div>
+    <div class="proj"><div class="bar2"><i style="width:${pct}%"></i></div><div class="amt"><span>已筹 ¥${r.toLocaleString()}</span><span>${pct}% · 目标 ¥${g.toLocaleString()}</span></div></div>
+    <div class="trace">善款来自两处：① 大家给「${s}」类善意点亮——每次点亮由企业配捐成真钱（你不花钱）；② 想多出力的人直接捐赠。资金方公开、全程可追溯。</div>
+    <button class="pub" id="pjdonate" style="margin-top:8px">💝 为这个项目直接捐一点</button>`;
+  $('#pmask').classList.add('on');
+  $('#projback').onclick=()=>$('#pmask').classList.remove('on');
+  $('#pjdonate').onclick=()=>toast('💝 demo：走正规捐赠通道');}
+$('#pmask').onclick=e=>{if(e.target===$('#pmask'))$('#pmask').classList.remove('on');};
+
+const deeds={
+  bike:{t:'扶起倒下的共享单车',sub:'路过顺手扶一把，路就清爽了',today:1203,total:'28.4 万',proj:'生活',wall:[['#7da585','三花','下班路上顺手扶了一辆 · 刚刚'],['#e8924e','路人甲','一排都倒了，扶完整个人都舒服 · 2分钟前']]},
+  help:{t:'看到有人找东西，搭把手帮一下',sub:'多一双手，多一束光',today:864,total:'15.3 万',proj:'陌生人',wall:[['#e07a6e','棉花糖','帮邻居一起找到了钥匙 · 刚刚'],['#9d8ec9','晚风','陪陌生人趴地上找了五分钟 · 5分钟前']]},
+};
+function openDeed(key){const d=deeds[key],pj=PJ(d.proj);
+  const wall=d.wall.map(w=>`<div class="cmt"><div class="a" style="background:${w[0]}">${w[1][0]}</div><div class="b"><div class="nm">${w[1]}</div><div class="tx">${w[2]}</div></div></div>`).join('');
+  $('#asheet').innerHTML=`<div class="backrow" id="deedback">‹ 返回</div>
+    <div class="deedkicker">✋ 一件大家一起在做的小事</div>
+    <h3>${d.t}</h3><div class="hint" style="margin-bottom:2px">${d.sub}</div>
+    <div class="deedstat">今天 <b>${d.today.toLocaleString()}</b> 人在做 · 累计 <b>${d.total}</b> 次</div>
+    <div class="pledgebox">
+      <div class="pledgeh">🌸 赞助方配捐承诺（封顶）</div>
+      <div class="pledgetxt">本月这件小事每被 1 万人响应，赞助方就配捐 ¥2,000 到 <b>${pj.name}</b>，封顶 ¥2 万。</div>
+      <div class="bar2"><i style="width:64%"></i></div>
+      <div class="amt"><span>已解锁 ¥1.28 万</span><span>封顶 ¥2 万</span></div>
+      <div class="pledgenote">同一人计一次 · 异常自动剔除 · 你不掏钱、不打卡</div>
+      <span class="seeproj" id="deedproj">看项目详情 ›</span>
+    </div>
+    <button class="give" id="deedo" style="background:var(--green)">🤝 我也来接力</button>
+    <div class="cmts" style="margin-top:18px"><div class="ct">💬 大家的分享 · ${d.wall.length}</div><div id="deedwall">${wall}</div></div>
+    <div class="dmbar"><input id="deedin" placeholder="说说你的故事，或「我做过了」…"><button id="deedsend">发送</button></div>`;
+  $('#amask').classList.add('on');
+  $('#deedback').onclick=()=>$('#amask').classList.remove('on');
+  $('#deedproj').onclick=()=>openProject(d.proj);
+  $('#deedo').onclick=function(){if(this.classList.contains('done'))return;this.classList.add('done');this.textContent='🤝 已接力 · 你也是在做这件小事的人';toast('🤝 你来接力了 · 不用打卡，做了来这儿说一声就好');};
+  $('#deedsend').onclick=()=>{const v=$('#deedin').value.trim();if(!v)return;const e=document.createElement('div');e.className='cmt';e.innerHTML=`<div class="a" style="background:#f0a35e">我</div><div class="b"><div class="nm">我 · 刚刚</div><div class="tx">${v}</div></div>`;$('#deedwall').prepend(e);$('#deedin').value='';toast('💬 已分享');};
+}
+$('#amask').onclick=e=>{if(e.target===$('#amask'))$('#amask').classList.remove('on');};
+
+function reframe(raw){
+  let t=raw.trim().replace(/^(今天|刚才|昨天|早上|中午|晚上|有一次|某天|这天|那天)[，,、\s]*/,'');
+  const who=(t.match(/(便利店阿姨|收银阿姨|阿姨|叔叔|店员|同事|前辈|上司|老板|面试官|师傅|司机|外卖小哥|快递小哥|奶奶|爷爷|妈妈|爸爸|牙医|医生|小孩|路人|前面的人|朋友|邻居)/)||[])[0]||'人';
+  const obj=(t.match(/(伞|充电线|座位|鱼刺|电梯|吸管|饭团|椅子|水|植物)/)||[])[0]||'';
+  const verb=(t.match(/(递|塞|挑好|挑|帮|让|按住|按|留|卷|缠|推)/)||[])[0]||'';
+  let sp=(t.match(/说[，,：:]?[""]?([^""。.！!，,]+)/)||[])[1];
+  if(sp){const cut=sp.match(/^.{1,7}?[吧啊呀哦呢了]/);sp=cut?cut[0]:sp.slice(0,7);}
+  if(sp){const act=obj&&verb?`把${obj}${verb}给你、`:'';return `会${act}笑着说"${sp}"的${who}`;}
+  if(obj&&verb) return `会悄悄帮你把${obj}${verb}好的${who}`;
+  let body=t.replace(who,'').replace(/^[，,、\s我]+/,'').replace(/[。.！!]+$/,'').slice(0,16);
+  return `会${body}的${who}`;
+}
+function guessK(t){if(/伞/.test(t))return['umbrella','服务业'];if(/植物|花|浇水/.test(t))return['plant','生活'];if(/充电线|线/.test(t))return['cable','职场'];if(/吸管|奶茶|杯/.test(t))return['cup','服务业'];if(/鱼|饭|妈|做菜/.test(t))return['fish','家人'];if(/椅子|会议/.test(t))return['chair','职场'];if(/烧烤|烤/.test(t))return['grill','生活'];if(/牙医|医生|护士/.test(t))return['tooth','服务业'];if(/面试|同事|前辈/.test(t))return['interview','职场'];return['person','陌生人'];}
+
+function renderCurate(){const r=$('#crow');if(!r)return;r.innerHTML='';moments.filter(m=>m.pick).forEach(m=>{const c=document.createElement('div');c.className='ccard';c.innerHTML=`<span class="badge">最暖</span>${ART(m)}<div class="t">${m.t}</div><div class="f">✨ ${m.f}</div>`;c.onclick=()=>openDetail(m);r.appendChild(c);});}
+
+function render(){const w=$('#wall');w.innerHTML='';moments.forEach(m=>{const el=document.createElement('div');
+  if(m.reply){const tints=['linear-gradient(135deg,#fbeede,#f5e2cd)','linear-gradient(135deg,#ebf1e7,#dfeadb)','linear-gradient(135deg,#f9eae6,#f2dcd5)','linear-gradient(135deg,#ecedf6,#e2e5f1)'];el.className='poster reply';el.style.background=tints[m.id%4];el.innerHTML=`<div class="rq">"</div><div class="replytext">${m.t}</div><div class="replysig">—— ${m.author||'一位朋友'}</div><div class="replyref">↩︎ 回应 <b>${m.replyTo}</b> ›</div>`;el.onclick=()=>openDetail(m);const rf=el.querySelector('.replyref');if(rf)rf.onclick=(ev)=>{ev.stopPropagation();const p=findM(m.replyToId);p?openDetail(p):toast('原帖已不可见');};w.appendChild(el);return;}
+  el.className='poster';el.innerHTML=`${m.pick?'<span class="pk">精选</span>':''}<div class="title">${m.t}</div><div class="art">${ART(m)}</div><div class="wm">${no(m)}</div><div class="bar"><div class="act a-f">✨ ${m.f}</div><div class="act a-m">我也 ${m.rc.我也遇到过}</div></div>`;
+  el.querySelector('.title').onclick=()=>openDetail(m);el.querySelector('.art').onclick=()=>openDetail(m);
+  el.querySelector('.a-f').onclick=function(e){e.stopPropagation();if(this.classList.contains('on'))return;this.classList.add('on');m.f++;this.textContent='✨ '+m.f;toast('✨ 点亮 +1 · 赞助方替你捐了 0.1 元');renderCurate();};
+  el.querySelector('.a-m').onclick=function(e){e.stopPropagation();this.classList.add('on2');m.rc.我也遇到过++;this.textContent='我也 '+m.rc.我也遇到过;openCompose({who:roleOf(m),scene:m.s,k:m.k});};
+  w.appendChild(el);});}
+function roleOf(m){const r=roles.find(x=>x.scene===m.s);return r?r.who:'人';}
+
+let gidx=0;
+function galList(){return moments.filter(m=>!m.reply);}
+function renderG(){const L=galList(),nav=document.querySelector('.gnav');
+  if(gidx>=L.length){if(nav)nav.style.visibility='hidden';
+    $('#gcard').innerHTML=`<div class="ginvite"><div class="gie">✨</div><div class="git">你有没有<br>一个类似的温暖瞬间？</div><div class="gis">记录下来，让更多人看见</div><button class="btnp" id="girec">✍️ 记录我的善意</button><button class="giall" id="giall">👀 查看全部</button></div>`;
+    $('#girec').onclick=e=>{e.stopPropagation();closeG();openCompose();};
+    $('#giall').onclick=e=>{e.stopPropagation();closeG();};return;}
+  if(nav)nav.style.visibility='visible';
+  const m=L[gidx];$('#gcard').innerHTML=`<div class="title">${m.t}</div>${ART(m)}<div class="wm">${no(m)} · ${gidx+1} / ${L.length}</div>`;}
+function openG(i){gidx=i||0;$('#gallery').classList.add('on');renderG();}
+function closeG(){$('#gallery').classList.remove('on');}
+$('#galbtn').onclick=()=>openG(0);
+$('#gclose').onclick=closeG;
+$('#gcard').onclick=()=>{const L=galList();if(gidx<L.length){gidx++;renderG();}};
+
+const findM=id=>moments.find(x=>x.id===id);
+function refcard(p){return `<div class="refcard" id="refcard"><div class="refthumb">${p.img?`<img src="img/${p.img}" alt="">`:'💬'}</div><div class="reftxt"><div class="refk">↩︎ 回应了</div><div class="reftt">${p.t}</div></div><span class="refgo">›</span></div>`;}
+function openDetail(m){
+  if(m.reply)return openReplyDetail(m);
+  const shareArr=m.cm.map(c=>[c[0],c[1],c[2]]);
+  const shareHtml=shareArr.map(c=>`<div class="cmt"><div class="a" style="background:${c[0]}">${c[1][0]}</div><div class="b"><div class="nm">${c[1]}</div><div class="tx">${c[2]}</div></div></div>`).join('');
+  $('#dsheet').innerHTML=`<div class="grab"></div>
+    <div class="poster2"><div class="pwm" style="margin-bottom:8px">${no(m)}</div><div class="ptitle">${m.t}</div>${ART(m)}<div class="pmeta">${m.author||'匿名的观察者'} · ${m.time||'今天'}</div></div>
+    <div class="actzone"><div class="actcount">已有 <b>${(m.f||0).toLocaleString()}</b> 人也想这样做</div><button class="btnp" id="follow">🤝 我也来</button></div>
+    <div class="cmts" style="margin-top:24px"><div class="ct">💬 大家的回应 · ${shareArr.length}</div><div id="dwall">${shareHtml}</div></div>
+    <label class="bcast"><input type="checkbox" id="bcast" checked> 发到广场（你的原话，让更多人看见）</label>
+    <div class="dmbar"><input id="dmin" placeholder="说说你的感受、或你也遇到过的事…"><button id="dmsend">发送</button></div>`;
+  $('#dmask').classList.add('on');
+  $('#follow').onclick=function(){if(this.classList.contains('done'))return;this.classList.add('done');this.textContent='🤝 你加入了！';m.f=(m.f||0)+1;const c=$('#dsheet .actcount b');if(c)c.textContent=m.f.toLocaleString();flyFlower();renderCurate();render();toast('🎉 你加入了 · 和大家一起想这样做<br>下次遇到机会，做了来这儿说一声就好');};
+  $('#dmsend').onclick=()=>{const v=$('#dmin').value.trim();if(!v)return;const e=document.createElement('div');e.className='cmt';e.innerHTML=`<div class="a" style="background:#f0a35e">我</div><div class="b"><div class="nm">我 · 刚刚</div><div class="tx">${v}</div></div>`;$('#dwall').prepend(e);const bc=$('#bcast').checked;if(bc){moments.unshift({id:nextId++,reply:true,author:'我',t:v,replyTo:m.t,replyToId:m.id,rc:{太好了:0,我也遇到过:0},cm:[]});render();}$('#dmin').value='';if($('#bcast'))$('#bcast').checked=false;toast(bc?'💬 已发出，并发到了广场':'💬 已发出');};}
+function openReplyDetail(m){
+  const parent=findM(m.replyToId);
+  const tints=['linear-gradient(135deg,#fbeede,#f5e2cd)','linear-gradient(135deg,#ebf1e7,#dfeadb)','linear-gradient(135deg,#f9eae6,#f2dcd5)','linear-gradient(135deg,#ecedf6,#e2e5f1)'];
+  const reacts=['太好了','我也遇到过'].map(k=>`<div class="rc" data-k="${k}">${k} <span class="n">${(m.rc&&m.rc[k])||0}</span></div>`).join('');
+  const cm=m.cm||[];const shareHtml=cm.map(c=>`<div class="cmt"><div class="a" style="background:${c[0]}">${c[1][0]}</div><div class="b"><div class="nm">${c[1]}</div><div class="tx">${c[2]}</div></div></div>`).join('');
+  $('#dsheet').innerHTML=`<div class="grab"></div>
+    <div class="dbar"><span class="dmore" id="dmore">···</span><div class="moremenu" id="moremenu"><div class="mi" id="mi-share">💌 传给一个人</div></div></div>
+    <div class="replybig" style="background:${tints[m.id%4]}"><div class="rq">"</div><div class="replytextbig">${m.t}</div><div class="replysig">—— ${m.author||'一位朋友'}</div></div>
+    ${parent?refcard(parent):''}
+    <div class="react2">${reacts}</div>
+    <div class="cmts" style="margin-top:20px"><div class="ct">💬 大家的分享 · ${cm.length}</div><div id="dwall">${shareHtml}</div></div>
+    <div class="dmbar"><input id="dmin" placeholder="也回应一句…"><button id="dmsend">发送</button></div>`;
+  $('#dmask').classList.add('on');
+  $$('#dsheet .rc').forEach(r=>r.onclick=function(){const k=this.dataset.k;const on=this.classList.toggle('on');if(!m.rc)m.rc={};m.rc[k]=(m.rc[k]||0)+(on?1:-1);this.querySelector('.n').textContent=m.rc[k];});
+  $('#dmore').onclick=(e)=>{e.stopPropagation();$('#moremenu').classList.toggle('on');};
+  $('#mi-share').onclick=()=>{$('#moremenu').classList.remove('on');openShare(m,false);};
+  if(parent)$('#refcard').onclick=()=>openDetail(parent);
+  $('#dmsend').onclick=()=>{const v=$('#dmin').value.trim();if(!v)return;const e=document.createElement('div');e.className='cmt';e.innerHTML=`<div class="a" style="background:#f0a35e">我</div><div class="b"><div class="nm">我 · 刚刚</div><div class="tx">${v}</div></div>`;$('#dwall').prepend(e);if(!m.cm)m.cm=[];m.cm.unshift(['#f0a35e','我',v]);$('#dmin').value='';toast('💬 已回应');};
+}
+$('#dmask').onclick=e=>{if(e.target===$('#dmask'))$('#dmask').classList.remove('on');};
+
+let cdraft={mode:'text',text:'',photo:false};
+const sparks=['面试官说我们也很紧张','给植物浇水时会跟它说话','还充电线时帮我缠好','牙医提前说会有点酸','东西掉座位下有人帮我打手电筒找'];
+function openCompose(){
+  $('#csheet').innerHTML=`<div class="grab"></div>
+    <div class="cstepbar"><b>① 写</b> › ② 看卡 › ③ 分享</div>
+    <h3>记一笔善意</h3>
+    <div class="cintro">今天，有没有一个让你觉得「生活还不错」的瞬间？☺️ 写一句、说一句、或拍一张，小暖帮你成卡。</div>
+    <textarea class="ta" id="freeIn" placeholder="说说你遇到的事，一句话也行…">${cdraft.text}</textarea>
+    <div class="ctools"><button class="ctool" id="voicebtn">🎤 语音</button><button class="ctool ${cdraft.photo?'on':''}" id="uploadbox">${cdraft.photo?'✅ 已加照片':'📷 加张照片'}</button></div>
+    <button class="pub" id="makeBtn" style="margin-top:18px">✨ 让小暖成卡</button>`;
+  $('#cmask').classList.add('on');
+  $('#voicebtn').onclick=()=>{$('#freeIn').value='今天下楼取快递，保安大叔看我没带伞，默默撑着伞陪我走到快递柜，拿完才收回去';toast('🎤 语音已转成文字（demo）');};
+  $('#uploadbox').onclick=function(){cdraft.photo=!cdraft.photo;this.classList.toggle('on',cdraft.photo);this.textContent=cdraft.photo?'✅ 已加照片':'📷 加张照片';};
+  $('#makeBtn').onclick=()=>{
+    const raw=$('#freeIn').value.trim();cdraft.text=raw;
+    if(!raw&&!cdraft.photo){toast('写一句，或加张照片 🙂');return;}
+    if(cdraft.photo){const line=raw?reframe(raw):'东西掉到座位下时，会开手电筒帮你一起找的人';const[k,scene]=raw?guessK(raw):['person','陌生人'];genStep(line,k,scene,raw||null,true,'seat.png');return;}
+    const line=reframe(raw);const[k,scene]=guessK(raw);genStep(line,k,scene,raw,false,kImg[k]);
+  };
+}
+let cur=null;
+function genStep(line,k,scene,raw,fromPhoto,img){
+  $('#csheet').innerHTML='<div class="grab"></div><div class="loading" style="padding:60px 0"><div class="spin"></div>小暖正在成卡、配插图…</div>';
+  setTimeout(()=>{cur={display:line,k,scene,img:img||kImg[k]||null};renderEdit();},1100);
+}
+function renderEdit(){const c=cur;
+  $('#csheet').innerHTML=`<div class="grab"></div>
+    <div class="cstepbar">① 写 › <b>② 看卡</b> › ③ 分享</div>
+    <div class="cstep">小暖帮你写好啦 · 点字就能改 ✏️</div>
+    <div class="ecard"><div class="ectitle" id="ectitle" contenteditable="true">${c.display}</div><div class="ecillu">${c.img?imgTag(c.img):svg[c.k]}</div></div>
+    <button class="pub" id="pub" style="margin-top:18px">发布</button>
+    <button class="ghostbtn" id="regen">↺ 换一版试试</button>`;
+  $('#regen').onclick=()=>{const vs=['会笑着把伞塞给你、说"你先用"的人','在你手忙脚乱时，悄悄搭把手的人','什么都没说，却帮你把事办妥的人'];cur.display=vs[Math.floor(Math.random()*vs.length)];renderEdit();};
+  $('#pub').onclick=()=>{const t=$('#ectitle').innerText.trim()||cur.display;const nm={id:nextId++,s:cur.scene,k:cur.k,img:cur.img,t,f:0,me:true,author:'我',time:'刚刚',rc:{太好了:0,是真的:0,我也遇到过:0,本人:0},cm:[]};moments.unshift(nm);cdraft={mode:'text',text:'',photo:false};$('#cmask').classList.remove('on');render();$('.scroll').scrollTop=0;openShare(nm,true);};
+}
+let nextId=7;
+function qr(){const N=21,s=4,F=(x,y)=>((x<7&&y<7)||(x>=N-7&&y<7)||(x<7&&y>=N-7));let r='';for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(F(x,y))continue;if((x*7+y*13+x*y)%3===0)r+=`<rect x="${x*s}" y="${y*s}" width="${s}" height="${s}"/>`;}const f=(ox,oy)=>`<rect x="${ox*s}" y="${oy*s}" width="${7*s}" height="${7*s}"/><rect x="${(ox+1)*s}" y="${(oy+1)*s}" width="${5*s}" height="${5*s}" fill="#fffdf8"/><rect x="${(ox+2)*s}" y="${(oy+2)*s}" width="${3*s}" height="${3*s}" fill="#2b2620"/>`;return `<svg viewBox="0 0 ${N*s} ${N*s}" fill="#2b2620" shape-rendering="crispEdges">${r}${f(0,0)}${f(N-7,0)}${f(0,N-7)}</svg>`;}
+function openShare(m,isNew){
+  $('#ssheet').innerHTML=`<div class="grab"></div>
+    ${isNew?'<div class="cstepbar">① 写 › ② 看卡 › <b>③ 分享</b></div>':''}
+    <div class="pubok">${isNew?'🎉 收录成功':'💌 把这份善意传出去'}</div>
+    <div class="pubsub">${isNew?'第 '+(1000+m.id)+' 次心头一暖 · 谢谢你让大家看见':'让更多人看见，这样的人'}</div>
+    ${isNew?'<div class="rewardchip">🌸 +1 小红花 · 记录善意，你也做了一件好事</div>':''}
+    <div class="sharecard" id="sharecard">
+      <div class="sctitle">${m.t}</div>
+      ${ART(m)}
+      <div class="scfoot"><div class="scbrand">人类善意观察计划<span>扫码，也来记录身边的善意</span></div><div class="scqr">${qr()}</div></div>
+    </div>
+    <div class="sharegrid">
+      <button class="sgbtn" data-a="save">📷 保存图片</button>
+      <button class="sgbtn" data-a="moments">💬 朋友圈</button>
+      <button class="sgbtn" data-a="friend">👥 好友</button>
+      <button class="sgbtn" data-a="link">🔗 复制链接</button>
+    </div>
+    <button class="pub" id="backsq">完成 · 回到广场</button>`;
+  $('#smask').classList.add('on');
+  $$('#ssheet .sgbtn').forEach(b=>b.onclick=()=>{const a=b.dataset.a;toast(a=='save'?'📷 卡片已保存到相册（demo）':a=='moments'?'💬 已发到朋友圈（demo）<br>卡片带二维码，朋友扫码也能来记录':a=='friend'?'👥 已分享给好友（demo）':'🔗 链接已复制（demo）');});
+  $('#backsq').onclick=()=>$('#smask').classList.remove('on');
+}
+$('#smask').onclick=e=>{if(e.target===$('#smask'))$('#smask').classList.remove('on');};
+$('#fab').onclick=()=>openCompose();
+$('#cmask').onclick=e=>{if(e.target===$('#cmask'))$('#cmask').classList.remove('on');};
+
+function closeAll(){['dmask','cmask','pmask','amask','smask','gallery','pushscreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});}
+$$('#scenebar button').forEach(b=>b.onclick=()=>{$$('#scenebar button').forEach(x=>x.classList.remove('on'));b.classList.add('on');closeAll();const s=b.dataset.s;if(s=='share'){gidx=0;openG(0);}else if(s=='push'){$('#pushscreen').classList.add('on');}});
+$('#wxlink').onclick=()=>{$('#pushscreen').classList.remove('on');cdraft={mode:'text',text:'',photo:false};openCompose();};
+let tt;function toast(m){const t=$('#toast');t.innerHTML=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2800);}
+renderCurate();render();
+</script>
+</body>
+</html>
